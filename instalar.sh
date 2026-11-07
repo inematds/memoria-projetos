@@ -95,7 +95,7 @@ diz "Kit em: $KIT"
 diz ""; diz "Pré-requisitos:"
 command -v python3 >/dev/null && diz "  ok: python3 ($PY)" || aviso "falta python3"
 if command -v ollama >/dev/null; then
-  if timeout 15 ollama list 2>/dev/null | grep -q '^bge-m3'; then diz "  ok: ollama com bge-m3"
+  if timeout 15 ollama list 2>/dev/null | grep '^bge-m3' >/dev/null; then diz "  ok: ollama com bge-m3"
   else aviso "Ollama sem o modelo bge-m3 (ou parado): rode  ollama pull bge-m3"; fi
 else aviso "falta o Ollama (https://ollama.com) + ollama pull bge-m3"; fi
 if [ "$INDICE" = 1 ]; then
@@ -146,7 +146,7 @@ if [ "$MEMORIA" = 1 ]; then
   copia_exemplo "$KIT/memoria/.env.exemplo" "$KIT/memoria/.env"
   copia_exemplo "$KIT/memoria/fontes.exemplo.json" "$KIT/memoria/fontes.json"
   atalho memoria "$KIT/memoria/memoria"
-  SERVICO="$(le_env HINDSIGHT_SERVICO hindsight)"
+  SERVICO="$(le_env HINDSIGHT_SERVICO memoria-hindsight)"
   HS_BIN="${HINDSIGHT_BIN:-$KIT/memoria/.venv/bin/hindsight-api}"
 
   if [ "$HS_INSTALAR" = 1 ]; then

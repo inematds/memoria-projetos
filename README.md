@@ -6,7 +6,7 @@
 
 ## O que é
 
-O memoria-projetos é um kit para quem tem muitos projetos e trabalha com agentes de IA, como o Claude Code e o Codex. Ele resolve dois problemas: o agente não sabe onde está cada projeto e esquece o que já foi decidido. O comando `projeto` procura pelo que o projeto faz, nas suas pastas e no GitHub. O comando `memoria` responde perguntas como "pode fazer X?" lendo suas lições e anotações, com data e fonte. Para usar, você precisa de um computador com Linux, Python, o Ollama e, para a memória, a assinatura do Claude (sem chave de API). As duas metades são independentes: dá para instalar só uma.
+O memoria-projetos é um kit para quem tem muitos projetos e trabalha com agentes de IA, como o Claude Code e o Codex. Ele resolve dois problemas: o agente não sabe onde está cada projeto e esquece o que já foi decidido. O comando `projeto` procura pelo que o projeto faz, nas suas pastas e no GitHub. O comando `memoria` responde perguntas como "pode fazer X?" lendo suas lições e anotações, com data e fonte. Para usar, você precisa de um computador com Linux, Python, o Ollama e, para a memória, a assinatura do Claude (sem chave de API). O índice fica todo na sua máquina; a memória manda o texto das anotações ao Claude para extrair os fatos. As duas metades são independentes: dá para instalar só uma.
 
 ## 📖 Guia de uso
 
@@ -70,7 +70,7 @@ O que ele faz:
 | Unidade | Quando | O que roda | Teto |
 |---|---|---|---|
 | `memoria-indice.timer` | todo dia 05:40 | `projeto --atualizar` | 1 GB · 20 min |
-| `hindsight.service` | sempre ligado | servidor Hindsight em `127.0.0.1:8891` | 8 GB |
+| `memoria-hindsight.service` | sempre ligado | servidor Hindsight em `127.0.0.1:8891` | 8 GB |
 | `memoria-carga.timer` | todo dia 06:10 | `carga.py --max 25` | 512 MB · 60 min |
 | `memoria-semana.timer` | segunda 08:00 | `semana.py --dias 7` | 512 MB · 30 min |
 
@@ -160,7 +160,7 @@ Se o Ollama estiver fora, o `projeto` cai só na busca por palavra e avisa. Se o
 11. ⚙️ Toda segunda 08:00: `memoria-semana.timer` gera `memoria/semana-AAAA-MM-DD.md` (uso, adoção pelo agente, custo, RAM).
 12. 🧠 Ler o relatório: ficou útil, muda a regra do agente ou desliga. De vez em quando, `python3 memoria/avalia.py` para medir a qualidade.
 
-Desligar tudo: `systemctl --user disable --now hindsight.service memoria-carga.timer memoria-semana.timer memoria-indice.timer`.
+Desligar tudo: `systemctl --user disable --now memoria-hindsight.service memoria-carga.timer memoria-semana.timer memoria-indice.timer`.
 
 ## Fazendo o agente usar
 

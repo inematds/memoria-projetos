@@ -129,7 +129,7 @@
     <div>
       <span class="chip">Kit local · índice + memória para agentes</span>
       <h1>Seu agente acha qualquer projeto e <span class="amb">lembra</span> o que já foi decidido</h1>
-      <p class="lead">Dois comandos: <code>projeto "o que faz"</code> acha o projeto, numa pasta ou só no GitHub. <code>memoria "pergunta"</code> responde com data e fonte, a partir das suas lições e anotações. Tudo roda na sua máquina, sem chave de API.</p>
+      <p class="lead">Dois comandos: <code>projeto "o que faz"</code> acha o projeto, numa pasta ou só no GitHub. <code>memoria "pergunta"</code> responde com data e fonte, a partir das suas lições e anotações. Índice e busca rodam na sua máquina; a memória usa a sua assinatura do Claude, sem chave de API.</p>
       <div class="cta">
         <a class="btn" href="#guia">Começar o guia</a>
         <a class="btn ghost" href="https://github.com/inematds/memoria-projetos" target="_blank" rel="noopener">Ver no GitHub</a>
@@ -141,7 +141,7 @@
 
 <section id="resumo" class="resumo"><div class="wrap">
   <span class="chip">Em resumo</span>
-  <p>O memoria-projetos é um kit para quem tem muitos projetos e trabalha com agentes de IA, como o Claude Code e o Codex. Ele resolve dois problemas: o agente não sabe onde está cada projeto e esquece o que já foi decidido. O comando <code>projeto</code> procura pelo que o projeto faz, nas suas pastas e no GitHub. O comando <code>memoria</code> responde perguntas como "pode fazer X?" lendo suas lições e anotações. Para usar, você precisa de um computador com Linux, Python, o Ollama e, para a memória, a assinatura do Claude.</p>
+  <p>O memoria-projetos é um kit para quem tem muitos projetos e trabalha com agentes de IA, como o Claude Code e o Codex. Ele resolve dois problemas: o agente não sabe onde está cada projeto e esquece o que já foi decidido. O comando <code>projeto</code> procura pelo que o projeto faz, nas suas pastas e no GitHub. O comando <code>memoria</code> responde perguntas como "pode fazer X?" lendo suas lições e anotações. Para usar, você precisa de um computador com Linux, Python, o Ollama e, para a memória, a assinatura do Claude. Atenção: o índice fica todo na sua máquina, mas a memória manda o texto das anotações ao Claude para extrair os fatos.</p>
 </div></section>
 
 <section id="oque"><div class="wrap">
@@ -159,7 +159,7 @@
 <section id="fluxo"><div class="wrap">
   <span class="chip">Como funciona</span>
   <h2>Do que você já tem ao que o agente pergunta</h2>
-  <p class="sub">Índice: pastas e repositórios viram uma linha cada, com vetores do <strong>bge-m3</strong> no Ollama local. Memória: o servidor <strong>Hindsight</strong> (código aberto, MIT) usa a sua assinatura do Claude para tirar fatos das anotações e responder.</p>
+  <p class="sub">Índice: pastas e repositórios viram uma linha cada. Para buscar por sentido, cada linha vira um <strong>vetor</strong> (uma lista de números que representa o significado do texto), calculado pelo modelo <strong>bge-m3</strong> no Ollama local. Memória: o <strong>Hindsight</strong>, um servidor de memória para agentes de código aberto (MIT), guarda os fatos num banco local e usa o <strong>Haiku</strong>, o modelo menor e mais rápido do Claude, pela sua assinatura, para tirar fatos das anotações e responder. Um modelo local de <strong>reordenação</strong> põe os trechos mais relevantes no topo.</p>
   <div class="flow">
     <span>Pastas + GitHub</span><span class="arr">→</span>
     <span>Índice diário 05:40</span><span class="arr">→</span>
@@ -182,7 +182,7 @@
 <span class="k">ollama pull</span> bge-m3</pre></div>
     <div class="card"><h3>GitHub CLI (índice)</h3><p>Logado em cada conta que você quer indexar. Sem ele, o índice fica só com as pastas locais.</p><pre><span class="k">gh auth login</span>   <span class="c"># uma vez por conta</span>
 <span class="k">gh auth status</span></pre></div>
-    <div class="card"><h3>Claude Code logado (memória)</h3><p>A memória usa a sua assinatura pelo provedor <code>claude-code</code> do Hindsight, indicado para uso pessoal e local. Os timers precisam de systemd de usuário.</p><pre><span class="k">claude</span> --version
+    <div class="card"><h3>Claude Code logado (memória)</h3><p>A memória usa a sua assinatura pelo provedor <code>claude-code</code> do Hindsight, indicado para uso pessoal e local. Os horários automáticos usam o systemd de usuário; o <code>enable-linger</code> deixa os timers rodarem mesmo com você deslogado. Sem systemd, use <code>--sem-systemd</code> e rode à mão.</p><pre><span class="k">claude</span> --version
 <span class="k">loginctl enable-linger</span> <span class="s">"$USER"</span></pre></div>
   </div>
 </div></section>
@@ -202,13 +202,14 @@
 
   <div class="step"><div class="b">2</div><div>
     <h3>Instalar as duas metades</h3>
-    <p>Cria os atalhos <code>projeto</code> e <code>memoria</code>, os serviços com teto de memória e instala o Hindsight (cerca de 2 GB). Só uma metade: <code>--so-indice</code> ou <code>--so-memoria</code>.</p>
-<pre><span class="k">./instalar.sh --instalar-hindsight</span></pre>
+    <p>Cria os atalhos <code>projeto</code> e <code>memoria</code> em <code>~/.local/bin</code>, os serviços com teto de memória e instala o Hindsight (cerca de 2 GB). Só uma metade: <code>--so-indice</code> ou <code>--so-memoria</code>. Se já existir um atalho ou serviço com o mesmo nome que não seja do kit, ele pula e avisa; para substituir, use <code>--forcar</code>. Confira se <code>~/.local/bin</code> está no seu PATH.</p>
+<pre><span class="k">./instalar.sh --instalar-hindsight</span>
+<span class="k">echo</span> $PATH | <span class="k">grep</span> -q .local/bin || <span class="k">echo</span> <span class="s">'export PATH="$HOME/.local/bin:$PATH"'</span> >> ~/.bashrc</pre>
   </div></div>
 
   <div class="step"><div class="b">3</div><div>
     <h3>Dizer onde estão as coisas</h3>
-    <p>Em <code>indice/config.json</code>: a pasta raiz dos projetos e as contas do GitHub. Em <code>memoria/fontes.json</code>: os arquivos de lições, falhas e memória. Em <code>memoria/.env</code>: o nome do banco.</p>
+    <p>Em <code>indice/config.json</code>: a pasta raiz dos projetos e as contas do GitHub (troque <code>sua-conta-github</code> pela sua, ou deixe <code>[]</code> para só pastas locais). Em <code>memoria/fontes.json</code>: os arquivos de lições, falhas e memória. Em <code>memoria/.env</code>: o nome do banco de memória (um por pessoa ou projeto).</p>
 <pre><span class="c"># exemplo de fonte em memoria/fontes.json</span>
 {<span class="s">"nome"</span>: <span class="s">"licoes"</span>, <span class="s">"tipo"</span>: <span class="s">"linhas"</span>, <span class="s">"caminho"</span>: <span class="s">"~/projetos/meu/LESSONS.md"</span>, ...}</pre>
   </div></div>
@@ -222,14 +223,14 @@
 
   <div class="step"><div class="b">5</div><div>
     <h3>Primeira carga da memória</h3>
-    <p>Veja antes o que seria enviado. Cada documento é uma chamada ao Haiku pela assinatura: no piloto, cerca de 5,6 mil tokens de entrada por documento, e 100 documentos levaram 8 minutos.</p>
+    <p>Veja antes o que seria enviado. Cada documento é uma chamada ao Haiku e gasta um pouco da cota da sua assinatura: no piloto, cerca de 5,6 mil tokens de entrada por documento, e 100 documentos levaram 8 minutos.</p>
 <pre><span class="k">python3 memoria/carga.py --simular</span>   <span class="c"># não envia nada</span>
 <span class="k">python3 memoria/carga.py --max 200</span>  <span class="c"># carga inicial</span></pre>
   </div></div>
 
   <div class="step"><div class="b">6</div><div>
     <h3>Perguntar</h3>
-    <p>Resposta pronta (30 a 75 s) ou só os trechos (7 a 17 s, sem LLM na resposta). Depois, dê uma nota: ela entra no relatório.</p>
+    <p>Resposta pronta (30 a 75 s) ou só os trechos (7 a 17 s, sem LLM na resposta). Depois, dê uma nota à última resposta (o texto entre aspas é o motivo): ela entra no relatório.</p>
 <pre><span class="k">memoria</span> <span class="s">"posso rodar processo longo sem teto de memória?"</span>
 <span class="k">memoria -r</span> <span class="s">"systemd PATH"</span>
 <span class="k">memoria --nota util</span> <span class="s">"achou a regra certa"</span></pre>
@@ -248,12 +249,21 @@
 <pre><span class="k">python3 memoria/semana.py</span>   <span class="c"># → memoria/semana-AAAA-MM-DD.md</span>
 <span class="k">python3 memoria/avalia.py</span>   <span class="c"># grep × trechos × resposta nas suas perguntas (gasta cota)</span></pre>
   </div></div>
+
+  <div class="step"><div class="b">9</div><div>
+    <h3>Desligar ou desinstalar</h3>
+    <p>Para parar tudo, desligue os serviços. Para remover, apague também os atalhos, o ambiente Python do Hindsight e o banco local (<code>~/.pg0</code>).</p>
+<pre><span class="k">systemctl --user disable --now</span> memoria-hindsight.service memoria-carga.timer memoria-semana.timer memoria-indice.timer
+<span class="k">rm</span> ~/.local/bin/projeto ~/.local/bin/memoria
+<span class="k">rm -rf</span> memoria/.venv
+<span class="k">rm -rf</span> ~/.pg0   <span class="c"># só se nenhum outro programa usa o pg0: apaga a memória gravada</span></pre>
+</div></div>
 </div></section>
 
 <section id="exemplos"><div class="wrap">
   <span class="chip">Exemplos</span>
   <h2>O que sai na tela</h2>
-  <p class="sub">Saídas reais do teste feito numa máquina com cerca de mil projetos.</p>
+  <p class="sub">Saídas reais de uma máquina com cerca de mil projetos; os nomes são dos projetos dela.</p>
   <div class="grid g2">
     <div class="card"><h3>🔎 Achar pelo que o projeto faz</h3><p>Sem lembrar o nome, só o que ele faz. O <code>*</code> marca que todas as palavras casaram:</p><pre><span class="k">projeto</span> <span class="s">"publica vídeo no youtube"</span> -n 2
 1.01* yt-pubx — Publique qualquer vídeo no
@@ -273,7 +283,7 @@
   <p class="sub">O índice está em uso diário. A memória está em teste: o relatório semanal decide os próximos passos.</p>
   <div class="phase"><div class="tag">Pronto</div><div class="d"><strong>Índice de projetos</strong><span>Pastas locais e várias contas do GitHub, busca por palavra e por sentido, aviso de pasta atrás do GitHub, atualização diária.</span></div></div>
   <div class="phase"><div class="tag">Em teste</div><div class="d"><strong>Memória que responde</strong><span>Carga diária só do que é novo, comando <code>memoria</code> com nota de utilidade e relatório semanal de uso e custo.</span></div></div>
-  <div class="phase"><div class="tag">Depois</div><div class="d"><strong>Mais fontes e mais agentes</strong><span>Handoffs e limites como fontes, ferramenta direta no agente (MCP) se o comando se pagar, e um banco por cliente em kits de atendimento.</span></div></div>
+  <div class="phase"><div class="tag">Depois</div><div class="d"><strong>Mais fontes e mais agentes</strong><span>Handoffs e limites como fontes, ferramenta direta no agente (MCP) se o comando se pagar, e um banco de memória por cliente.</span></div></div>
 </div></section>
 
 <footer>

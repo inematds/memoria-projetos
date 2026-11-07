@@ -38,7 +38,7 @@ ENV = le_env()
 URL = ENV.get("HINDSIGHT_URL") or f"http://127.0.0.1:{ENV.get('HINDSIGHT_API_PORT', '8891')}"
 BANCO = ENV.get("HINDSIGHT_BANCO", "projeto")
 BASE = f"{URL.rstrip('/')}/v1/default/banks/{BANCO}"
-SERVICO = ENV.get("HINDSIGHT_SERVICO", "hindsight")
+SERVICO = ENV.get("HINDSIGHT_SERVICO", "memoria-hindsight")
 
 
 def caminho(valor):

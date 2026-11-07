@@ -4,7 +4,7 @@
   "contas": ["sua-conta-github"],
   "subpastas_com_readme": [],
   "pular": ["output", "node_modules", "__pycache__", "lost+found"],
-  "pular_subpastas": ["longrun", "handoffs"],
+  "pular_subpastas": [],
   "saida_md": "projetos.md",
   "saida_jsonl": "projetos.jsonl",
   "ollama_url": "http://127.0.0.1:11434/api/embed",
