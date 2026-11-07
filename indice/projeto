@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+"""projeto "o que faz" — acha projeto no índice (projetos.jsonl), por palavra e por sentido.
+
+Palavra: as palavras da busca no nome, na descrição, no repo e no começo do README
+         (com os sinônimos do sinonimos.json: "yt" também acha "youtube").
+Sentido: modelo de vetores no Ollama local (padrão bge-m3), vetores em cache por texto.
+Sem Ollama, cai só na busca por palavra e avisa.
+
+  projeto "separa operação do desenvolvimento" [-n 8]
+  projeto --atualizar          (refaz o índice e os vetores)
+"""
+import argparse
+import hashlib
+import json
+import math
+import os
+import re
+import subprocess
+import sys
+import unicodedata
+import urllib.request
+from pathlib import Path
+
+AQUI = Path(os.path.realpath(__file__)).parent
+sys.path.insert(0, str(AQUI))
+from comum import caminho, carregar_config, carregar_sinonimos  # noqa: E402
+
+CFG = carregar_config()
+JSONL = caminho(CFG["saida_jsonl"])
+VET = AQUI / "cache-vetores.json"
+OLLAMA = CFG["ollama_url"]
+MODELO = CFG["ollama_modelo"]
+PESO = float(CFG.get("peso_palavra", 0.35))
+SINONIMOS = carregar_sinonimos()
+VAZIAS = {"que", "para", "com", "dos", "das", "uma", "por", "tem", "temos", "qual", "projeto", "projetos",
+          "the", "and", "do", "da", "de", "o", "a", "e"}
+
+
+def norm(t):
+    t = unicodedata.normalize("NFKD", t.lower())
+    return "".join(c for c in t if not unicodedata.combining(c))
+
+
+def texto(i):
+    return f"{i['nome']} — {i['desc']} | {i.get('busca', '')}"[:1800].strip()
+
+
+def embed(textos):
+    req = urllib.request.Request(OLLAMA, data=json.dumps({"model": MODELO, "input": textos}).encode(),
+                                 headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req, timeout=300) as r:
+        return json.loads(r.read())["embeddings"]
+
+
+def cos(a, b):
+    s = sum(x * y for x, y in zip(a, b))
+    na = math.sqrt(sum(x * x for x in a))
+    nb = math.sqrt(sum(y * y for y in b))
+    return s / (na * nb) if na and nb else 0.0
+
+
+def vetores(itens):
+    try:
+        cache = json.loads(VET.read_text())
+    except Exception:
+        cache = {}
+    chaves = [hashlib.sha1(f"{MODELO}|{texto(i)}".encode()).hexdigest()[:16] for i in itens]
+    faltam = [(k, texto(i)) for k, i in zip(chaves, itens) if k not in cache]
+    for n in range(0, len(faltam), 64):
+        lote = faltam[n:n + 64]
+        for (k, _), v in zip(lote, embed([t for _, t in lote])):
+            cache[k] = [round(x, 5) for x in v]
+    if faltam:
+        vivos = set(chaves)
+        VET.write_text(json.dumps({k: v for k, v in cache.items() if k in vivos}))
+    return [cache[k] for k in chaves]
+
+
+def linha(i, nota=""):
+    onde = i["pasta"] or "só GitHub"
+    repo = f" · {i['repo']}{' (privado)' if i.get('privado') else ''}" if i["repo"] else ""
+    return f"{nota}{i['nome']} — {i['desc'][:140] or '(sem descrição)'}\n      {onde}{repo} · {i['ultimo']}"
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("busca", nargs="*")
+    ap.add_argument("-n", type=int, default=8, help="quantos resultados mostrar (padrão 8)")
+    ap.add_argument("--atualizar", action="store_true", help="refaz o índice e os vetores")
+    a = ap.parse_args()
+    if a.atualizar:
+        subprocess.run([sys.executable, str(AQUI / "indice.py")], check=True)
+        itens = [json.loads(l) for l in JSONL.open()]
+        try:
+            vetores(itens)
+            print(f"vetores ok ({len(itens)})", file=sys.stderr)
+        except Exception as e:
+            print(f"aviso: vetores não atualizados (Ollama: {e})", file=sys.stderr)
+        if not a.busca:
+            return
+    if not a.busca:
+        ap.print_help()
+        return
+    if not JSONL.exists():
+        sys.exit(f"índice ainda não existe ({JSONL}). Rode primeiro: projeto --atualizar")
+    q = " ".join(a.busca)
+    itens = [json.loads(l) for l in JSONL.open()]
+
+    palavras = [w for w in re.findall(r"\w+", norm(q)) if len(w) > 1 and w not in VAZIAS]
+
+    def lex(i):
+        alvo = norm(f"{i['nome']} {i['desc']} {i['repo']} {i.get('busca', '')}")
+        nome = norm(i["nome"])
+        if not palavras:
+            return 0.0
+        hits = 0.0
+        for w in palavras:
+            formas = SINONIMOS.get(w, [w])
+            if any(re.search(r"\b" + re.escape(f), alvo) for f in formas):
+                hits += 1
+            if any(f in nome for f in formas):
+                hits += 0.5
+        return hits / len(palavras)
+
+    sem = {}
+    try:
+        vs = vetores(itens)
+        vq = embed([q])[0]
+        sem = {id(i): cos(vq, v) for v, i in zip(vs, itens)}
+    except Exception as e:
+        print(f"(busca por sentido indisponível: {e}; só palavra)", file=sys.stderr)
+
+    notas = sorted(((sem.get(id(i), 0.0) + PESO * lex(i), lex(i), i) for i in itens), key=lambda x: -x[0])
+    for nota, lx, i in notas[:a.n]:
+        print(linha(i, f"  {nota:.2f}{'*' if lx >= 1 else ' '} "))
+    print("  (* = todas as palavras casaram)", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()

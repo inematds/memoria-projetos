@@ -1,0 +1,34 @@
+{
+  "_leia": "Copie para fontes.json e troque os caminhos pelos seus. Caminho com ~ é aceito; relativo = relativo a esta pasta (memoria/). Tipos: linhas (itens '- ' de uma lista markdown), tabela (linhas de dados de tabelas markdown), pasta-md (cada arquivo .md da pasta vira um documento). 'nome' identifica a fonte no estado e no document_id: não troque depois da primeira carga.",
+  "fontes": [
+    {
+      "nome": "licoes",
+      "tipo": "linhas",
+      "caminho": "~/meu-projeto/LESSONS.md",
+      "contexto": "lição aprendida no projeto (LESSONS.md): regra de uma linha com data",
+      "tag": "licao",
+      "bloco": 15
+    },
+    {
+      "nome": "falhas",
+      "tipo": "tabela",
+      "caminho": "~/meu-projeto/FALHAS.md",
+      "contexto": "falha registrada (FALHAS.md: data | o que quebrou | menor correção | prompt ou infra)",
+      "tag": "falha",
+      "bloco": 15
+    },
+    {
+      "nome": "mem",
+      "tipo": "pasta-md",
+      "caminho": "~/.claude/projects/NOME-DA-PASTA-DO-PROJETO/memory",
+      "contexto": "memória do agente",
+      "tag": "memoria",
+      "ignorar": ["MEMORY.md"]
+    }
+  ],
+  "_sessoes": "Opcional, só para o relatório da semana (semana.py): onde ficam os registros de sessão dos agentes (arquivos .jsonl). Pasta que não existe é pulada. O Codex pode não gravar sessão em arquivo; aí vale o campo 'quem' do uso.jsonl.",
+  "sessoes": [
+    {"nome": "claude", "pasta": "~/.claude/projects"},
+    {"nome": "codex", "pasta": "~/.codex/sessions"}
+  ]
+}

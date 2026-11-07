@@ -1,0 +1,6 @@
+{"pergunta": "Que cuidado tomar com o PATH em serviço systemd?", "palavra_grep": "systemd", "gabarito": ["path"]}
+{"pergunta": "Posso apagar arquivos sem pedir confirmação?", "palavra_grep": "apagar", "gabarito": ["confirm|aprova|pergunt"]}
+{"pergunta": "Qual modelo de vetores usamos para texto em português?", "palavra_grep": "vetor", "gabarito": ["bge-m3"]}
+{"pergunta": "Como evitar que um processo longo trave a máquina por falta de memória?", "palavra_grep": "MemoryMax", "gabarito": ["memorymax|teto|limite"]}
+{"pergunta": "Qual erro já aconteceu com um comando que esperava entrada e travou?", "palavra_grep": "trav", "gabarito": ["stdin|entrada"]}
+{"pergunta": "Onde ficam as chaves de API e o que nunca fazer com elas?", "palavra_grep": "chave", "gabarito": [".env", "imprim|mostrar|exib"]}

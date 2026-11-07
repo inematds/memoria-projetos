@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+"""memoria — pergunta à memória do projeto (servidor Hindsight local).
+
+  memoria "posso usar X em produção?"     # resposta pronta, com data e fonte (30–75 s)
+  memoria -r "systemd PATH"                # só os trechos, mais rápido (7–17 s)
+  memoria --nota util|inutil "por quê"     # avalia a última resposta (entra no relatório da semana)
+
+Cada uso vira uma linha em uso.jsonl (quem chamou, tempo, tamanho), base do relatório da semana.
+Se o servidor estiver fora, avisa e sai com código 2: aí use o grep de sempre nos seus arquivos.
+"""
+import argparse
+import json
+import os
+import sys
+import time
+from datetime import datetime
+from pathlib import Path
+
+AQUI = Path(os.path.realpath(__file__)).parent
+sys.path.insert(0, str(AQUI))
+from hs import BANCO, SERVICO, URL, call  # noqa: E402
+
+USO = AQUI / "uso.jsonl"
+
+
+def quem():
+    if os.environ.get("CLAUDECODE"):
+        return "claude"
+    if any(k.startswith("CODEX") for k in os.environ):
+        return "codex"
+    return "terminal"
+
+
+def grava(reg):
+    reg = {"ts": datetime.now().astimezone().isoformat(timespec="seconds"), "quem": quem(), "pasta": os.getcwd(), **reg}
+    with USO.open("a") as fh:
+        fh.write(json.dumps(reg, ensure_ascii=False) + "\n")
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("pergunta", nargs="*")
+    ap.add_argument("-r", "--recall", action="store_true", help="só trechos (rápido, sem LLM na resposta)")
+    ap.add_argument("-n", type=int, default=8, help="quantos trechos no -r (padrão 8)")
+    ap.add_argument("--nota", choices=["util", "inutil"], help="avalia a última resposta")
+    a = ap.parse_args()
+    q = " ".join(a.pergunta).strip()
+    if a.nota:
+        grava({"modo": "nota", "nota": a.nota, "motivo": q})
+        print("nota gravada")
+        return
+    if not q:
+        ap.print_help()
+        sys.exit(1)
+    t0 = time.time()
+    try:
+        if a.recall:
+            r = call("POST", "/memories/recall", {"query": q, "budget": "mid", "max_tokens": 2500}, timeout=120)
+            txt = "\n".join(f"- [{x.get('type', '')}] {x.get('text', '')[:300]}" for x in r.get("results", [])[:a.n])
+        else:
+            r = call("POST", "/reflect", {"query": q, "budget": "mid"}, timeout=180)
+            txt = r.get("text") or ""
+    except Exception as e:  # noqa: BLE001
+        grava({"modo": "erro", "pergunta": q, "erro": str(e)[:200], "s": round(time.time() - t0, 1)})
+        print(f"memoria: servidor fora em {URL} (banco {BANCO}): {str(e)[:100]}\n"
+              f"  Use o grep de sempre nos seus arquivos. Para subir: systemctl --user start {SERVICO}",
+              file=sys.stderr)
+        sys.exit(2)
+    s = round(time.time() - t0, 1)
+    grava({"modo": "recall" if a.recall else "reflect", "pergunta": q, "s": s, "tokens": len(txt) // 4,
+           "vazio": not txt.strip()})
+    print(txt or "(nada encontrado)")
+    print(f"({s}s · avalie: memoria --nota util|inutil \"motivo\")", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()

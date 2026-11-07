@@ -1,0 +1,13 @@
+{
+  "_leia": "Copie para config.json e ajuste. Caminhos com ~ são aceitos. Caminho relativo = relativo a esta pasta (indice/).",
+  "raiz": "~/projetos",
+  "contas": ["sua-conta-github"],
+  "subpastas_com_readme": [],
+  "pular": ["output", "node_modules", "__pycache__", "lost+found"],
+  "pular_subpastas": ["longrun", "handoffs"],
+  "saida_md": "projetos.md",
+  "saida_jsonl": "projetos.jsonl",
+  "ollama_url": "http://127.0.0.1:11434/api/embed",
+  "ollama_modelo": "bge-m3",
+  "peso_palavra": 0.35
+}

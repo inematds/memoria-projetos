@@ -1,0 +1,33 @@
+# configuração de cada pessoa (os *.exemplo.* vão para o git)
+indice/config.json
+indice/sinonimos.json
+memoria/fontes.json
+memoria/perguntas.jsonl
+.env
+memoria/.env
+
+# saídas e caches do índice
+indice/projetos.md
+indice/projetos.jsonl
+projetos.md
+projetos.jsonl
+indice/cache-readme.json
+indice/cache-vetores.json
+
+# estado, registros e relatórios da memória
+memoria/uso.jsonl
+memoria/carga.jsonl
+memoria/estado-*.json
+estado-*.json
+memoria/resultado.json
+memoria/resultado.md
+memoria/semana-*.md
+*.log
+memoria/corpus.jsonl
+
+# ambiente Python e dados locais
+.venv/
+memoria/.venv/
+__pycache__/
+*.pyc
+.pg0/

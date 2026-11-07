@@ -1,0 +1,18 @@
+{
+  "_leia": "Copie para sinonimos.json e ajuste. Cada palavra da busca (sem acento, minúscula) casa com qualquer uma das formas da lista.",
+  "ops": ["ops", "operacao", "operacional", "producao"],
+  "dev": ["dev", "desenvolvimento", "desenvolvedor"],
+  "video": ["video", "videos", "reel", "short"],
+  "publica": ["publica", "publicar", "publicador", "upload", "sobe"],
+  "yt": ["yt", "youtube"],
+  "youtube": ["youtube", "yt"],
+  "tg": ["tg", "telegram"],
+  "telegram": ["telegram", "tg", "telethon"],
+  "vigia": ["vigia", "monitor", "monitora", "watchdog"],
+  "memoria": ["memoria", "memory", "lembra"],
+  "traduz": ["traduz", "traducao", "translate", "idiomas"],
+  "imagem": ["imagem", "imagens", "image", "foto"],
+  "voz": ["voz", "tts", "narracao", "voice"],
+  "bot": ["bot", "robo"],
+  "curso": ["curso", "cursos", "aulas", "trilha"]
+}
