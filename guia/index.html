@@ -147,7 +147,7 @@
 <section id="oque"><div class="wrap">
   <span class="chip">O que é</span>
   <h2>Duas metades independentes</h2>
-  <p class="sub">Dá para instalar só uma. As duas rodam localmente e se atualizam sozinhas todo dia.</p>
+  <p class="sub">Dá para instalar só uma. O índice roda todo local; a memória guarda tudo local, mas usa o Claude para extrair os fatos. As duas se atualizam sozinhas todo dia.</p>
   <figure style="margin:0 0 26px;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px -30px #000"><img src="assets/banner-grade.jpg" alt="Banner com os seis recursos: índice de projetos, busca por sentido, local e GitHub, memória que responde, carga diária e relatório da semana" loading="lazy" style="width:100%;display:block"></figure>
   <div class="grid g3">
     <div class="card"><h3>🔎 Acha qualquer projeto</h3><p><code>projeto "o que faz"</code> procura por palavra e por sentido em mais de mil projetos, inclusive os que só existem no GitHub, e avisa quando a pasta local está atrás do GitHub.</p></div>
@@ -204,14 +204,20 @@
     <h3>Instalar as duas metades</h3>
     <p>Cria os atalhos <code>projeto</code> e <code>memoria</code> em <code>~/.local/bin</code>, os serviços com teto de memória e instala o Hindsight (cerca de 2 GB). Só uma metade: <code>--so-indice</code> ou <code>--so-memoria</code>. Se já existir um atalho ou serviço com o mesmo nome que não seja do kit, ele pula e avisa; para substituir, use <code>--forcar</code>. Confira se <code>~/.local/bin</code> está no seu PATH.</p>
 <pre><span class="k">./instalar.sh --instalar-hindsight</span>
-<span class="k">echo</span> $PATH | <span class="k">grep</span> -q .local/bin || <span class="k">echo</span> <span class="s">'export PATH="$HOME/.local/bin:$PATH"'</span> >> ~/.bashrc</pre>
+<span class="k">echo</span> $PATH | <span class="k">grep</span> -q .local/bin || <span class="k">echo</span> <span class="s">'export PATH="$HOME/.local/bin:$PATH"'</span> >> ~/.bashrc
+<span class="k">source</span> ~/.bashrc   <span class="c"># ou abra um terminal novo</span>
+<span class="k">systemctl --user status</span> memoria-hindsight   <span class="c"># 1ª subida baixa o banco: espere "active (running)"</span></pre>
   </div></div>
 
   <div class="step"><div class="b">3</div><div>
     <h3>Dizer onde estão as coisas</h3>
     <p>Em <code>indice/config.json</code>: a pasta raiz dos projetos e as contas do GitHub (troque <code>sua-conta-github</code> pela sua, ou deixe <code>[]</code> para só pastas locais). Em <code>memoria/fontes.json</code>: os arquivos de lições, falhas e memória. Em <code>memoria/.env</code>: o nome do banco de memória (um por pessoa ou projeto).</p>
-<pre><span class="c"># exemplo de fonte em memoria/fontes.json</span>
-{<span class="s">"nome"</span>: <span class="s">"licoes"</span>, <span class="s">"tipo"</span>: <span class="s">"linhas"</span>, <span class="s">"caminho"</span>: <span class="s">"~/projetos/meu/LESSONS.md"</span>, ...}</pre>
+<pre><span class="c"># uma fonte em memoria/fontes.json (modelo completo em fontes.exemplo.json)</span>
+{<span class="s">"nome"</span>: <span class="s">"licoes"</span>, <span class="s">"tipo"</span>: <span class="s">"linhas"</span>,
+ <span class="s">"caminho"</span>: <span class="s">"~/meu-projeto/LESSONS.md"</span>,
+ <span class="s">"contexto"</span>: <span class="s">"lição aprendida no projeto"</span>, <span class="s">"tag"</span>: <span class="s">"licao"</span>}
+<span class="c"># a memória do Claude Code fica em ~/.claude/projects/&lt;pasta&gt;/memory</span>
+<span class="k">ls</span> ~/.claude/projects/   <span class="c"># &lt;pasta&gt; = caminho do projeto com / trocado por -</span></pre>
   </div></div>
 
   <div class="step"><div class="b">4</div><div>
@@ -254,8 +260,10 @@
     <h3>Desligar ou desinstalar</h3>
     <p>Para parar tudo, desligue os serviços. Para remover, apague também os atalhos, o ambiente Python do Hindsight e o banco local (<code>~/.pg0</code>).</p>
 <pre><span class="k">systemctl --user disable --now</span> memoria-hindsight.service memoria-carga.timer memoria-semana.timer memoria-indice.timer
+<span class="k">rm</span> ~/.config/systemd/user/memoria-*.service ~/.config/systemd/user/memoria-*.timer
+<span class="k">systemctl --user daemon-reload</span>
 <span class="k">rm</span> ~/.local/bin/projeto ~/.local/bin/memoria
-<span class="k">rm -rf</span> memoria/.venv
+<span class="k">rm -rf</span> memoria/.venv   <span class="c"># de dentro da pasta do kit</span>
 <span class="k">rm -rf</span> ~/.pg0   <span class="c"># só se nenhum outro programa usa o pg0: apaga a memória gravada</span></pre>
 </div></div>
 </div></section>
@@ -283,7 +291,7 @@
   <p class="sub">O índice está em uso diário. A memória está em teste: o relatório semanal decide os próximos passos.</p>
   <div class="phase"><div class="tag">Pronto</div><div class="d"><strong>Índice de projetos</strong><span>Pastas locais e várias contas do GitHub, busca por palavra e por sentido, aviso de pasta atrás do GitHub, atualização diária.</span></div></div>
   <div class="phase"><div class="tag">Em teste</div><div class="d"><strong>Memória que responde</strong><span>Carga diária só do que é novo, comando <code>memoria</code> com nota de utilidade e relatório semanal de uso e custo.</span></div></div>
-  <div class="phase"><div class="tag">Depois</div><div class="d"><strong>Mais fontes e mais agentes</strong><span>Handoffs e limites como fontes, ferramenta direta no agente (MCP) se o comando se pagar, e um banco de memória por cliente.</span></div></div>
+  <div class="phase"><div class="tag">Depois</div><div class="d"><strong>Mais fontes e mais agentes</strong><span>Mais tipos de anotação como fontes, uma ferramenta que o agente chama direto, sem passar pelo terminal (MCP), se o comando se pagar, e um banco de memória por cliente.</span></div></div>
 </div></section>
 
 <footer>
