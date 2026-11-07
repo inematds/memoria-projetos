@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>memoria-projetos — encuentra cualquier proyecto y consulta lo que ya se decidió</title>
+<meta name="description" content="Kit local para agentes de IA: proyecto "qué hace" encuentra cualquier proyecto (carpetas y GitHub) y memoria "pregunta" responde qué se decidió, con fecha y fuente.">
+<link rel="alternate" hreflang="pt-BR" href="https://inematds.github.io/memoria-projetos/guia/">
+<link rel="alternate" hreflang="en" href="https://inematds.github.io/memoria-projetos/guia/en/">
+<link rel="alternate" hreflang="es" href="https://inematds.github.io/memoria-projetos/guia/es/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0c10; --bg2:#14141b; --card:#16161e; --line:#272730;
+    --txt:#e9e9ee; --mut:#9a9aa6; --amb:#E2A23B; --amb2:#f0c070; --sky:#38bdf8; --pro:#cbd5e1;
+    color-scheme:dark;
+  }
+  body.light{
+    --bg:#f6f7f9; --bg2:#eceef2; --card:#ffffff; --line:#e1e3ea;
+    --txt:#1a1a22; --mut:#5b5b68; --amb:#b9791d; --amb2:#a16207; --sky:#0369a1; --pro:#b45309;
+    color-scheme:light;
+  }
+  body.light .hero .glow{opacity:.5}
+  body.light pre{background:#0e0e14;color:#d6d6e0}
+  body.light pre .c{color:#8a8a98}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.65 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  h1,h2,h3{font-family:Sora,sans-serif;line-height:1.15;margin:0}
+  a{color:var(--amb);text-decoration:none}
+  code,pre{font-family:"JetBrains Mono",monospace}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 22px}
+  .mut{color:var(--mut)} .amb{color:var(--amb)}
+  .chip{display:inline-block;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--amb);font-weight:600;font-family:Sora}
+  nav{position:sticky;top:0;z-index:30;backdrop-filter:blur(12px);background:rgba(12,12,16,.78);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;gap:22px;height:60px}
+  nav .brand{display:flex;align-items:center;gap:8px;font-family:Sora;font-weight:800;letter-spacing:-.02em;color:var(--amb)}
+  nav .brand .emoji{font-size:1.25rem}
+  nav .sep{color:var(--mut);opacity:.45}
+  nav .inema{color:var(--sky);font-weight:600;font-size:.88rem;font-family:Sora}
+  nav .inema:hover{filter:brightness(1.15)}
+  nav .pro{color:var(--pro);font-weight:600;font-size:.88rem;font-family:Sora}
+  nav .pro:hover{filter:brightness(1.15)}
+  nav .clubpro{display:inline-flex;align-items:center;gap:6px}
+  nav .links{margin-left:auto;display:flex;align-items:center;gap:20px;font-size:.92rem}
+  nav .links a.sec{color:var(--mut)} nav .links a.sec:hover{color:var(--txt)}
+  .lang{display:inline-flex;gap:2px;font-family:Sora;font-size:.78rem}
+  .lang a{color:var(--mut);padding:.2em .45em;border-radius:6px} .lang a.on{color:var(--amb);background:rgba(226,162,59,.12)}
+  .tgl{background:var(--bg2);border:1px solid var(--line);color:var(--txt);width:38px;height:38px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:1.05rem}
+  .tgl:hover{border-color:var(--amb)}
+  .btn{display:inline-block;background:var(--amb);color:#1a1206;font-weight:600;padding:.6em 1.05em;border-radius:10px;font-family:Sora}
+  .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
+  @media(max-width:760px){nav .links a.sec{display:none}}
+  @media(max-width:520px){nav .wrap{gap:8px;padding:8px 14px;height:auto;flex-wrap:wrap} nav .links{gap:8px;margin-left:0;width:100%;justify-content:space-between} nav .btn{padding:.45em .7em;font-size:.82rem} .tgl{width:34px;height:34px}}
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+  .hero .glow{position:absolute;inset:-40% -20% auto auto;width:70%;height:600px;background:radial-gradient(closest-side,rgba(226,162,59,.22),transparent 70%);pointer-events:none}
+  .hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:74px 22px}
+  .hero h1{font-size:clamp(2.2rem,5vw,3.5rem);font-weight:800;letter-spacing:-.025em}
+  .hero p.lead{font-size:1.18rem;color:var(--mut);margin:1.1em 0 1.6em;max-width:34ch}
+  .hero .cta{display:flex;gap:12px;flex-wrap:wrap}
+  .hero figure{margin:0;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px -30px #000}
+  .hero figure img{width:100%;height:auto;display:block}
+  .resumo{padding:38px 0 34px;border-bottom:1px solid var(--line)}
+  .resumo p{font-size:1.12rem;line-height:1.7;max-width:74ch;margin:.55em 0 0}
+  @media(max-width:780px){.hero .wrap{grid-template-columns:1fr;padding:48px 22px}}
+  section{padding:62px 0;border-bottom:1px solid var(--line)}
+  section h2{font-size:clamp(1.5rem,3.4vw,2.1rem);font-weight:800;letter-spacing:-.02em}
+  section .sub{color:var(--mut);margin:.6em 0 2em;max-width:62ch}
+  .grid{display:grid;gap:16px}
+  .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)} .g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:820px){.g3,.g4{grid-template-columns:1fr 1fr}}
+  @media(max-width:540px){.g2,.g3,.g4{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .card h3{font-size:1.05rem;margin-bottom:.4em}
+  .card p{color:var(--mut);font-size:.92rem;margin:0}
+  .num{display:inline-flex;width:30px;height:30px;align-items:center;justify-content:center;border-radius:8px;background:rgba(226,162,59,.14);color:var(--amb);font-family:Sora;font-weight:800;font-size:.9rem;margin-bottom:.7em}
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+  .flow span{background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:.45em .9em;font-size:.85rem;font-family:Sora;font-weight:600}
+  .flow .arr{color:var(--amb);border:none;background:none;padding:0 .1em}
+  pre{background:#0a0a0e;border:1px solid var(--line);border-radius:12px;padding:16px 18px;overflow:auto;font-size:.86rem;line-height:1.6;color:#d6d6e0}
+  pre .c{color:#6f6f7c} pre .k{color:var(--amb2)} pre .s{color:#9ece6a}
+  .step{display:grid;grid-template-columns:46px minmax(0,1fr);gap:16px;margin-bottom:26px}
+  .step>div,.card{min-width:0}
+  p code,li code,td code{overflow-wrap:anywhere}
+  .step .b{width:46px;height:46px;border-radius:12px;background:var(--amb);color:#1a1206;font-family:Sora;font-weight:800;font-size:1.25rem;display:flex;align-items:center;justify-content:center}
+  .step h3{font-size:1.12rem;margin-bottom:.3em}
+  .step p{color:var(--mut);margin:.2em 0 .7em}
+  .ex{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:680px){.ex{grid-template-columns:1fr}}
+  .ex figure{margin:0;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+  .ex figure img{width:100%;height:auto;display:block}
+  .ex figcaption{padding:12px 14px;font-size:.88rem;color:var(--mut);background:var(--card)}
+  .phase{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
+  .phase:last-child{border:none}
+  .phase .tag{flex:0 0 92px;font-family:Sora;font-weight:800;color:var(--amb)}
+  .phase .d strong{display:block;margin-bottom:.2em}
+  .phase .d span{color:var(--mut);font-size:.92rem}
+  footer{padding:46px 0;text-align:center;color:var(--mut);font-size:.9rem}
+  .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:.3em .8em;font-size:.78rem;color:var(--mut);margin:0 4px}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="brand" href="#top"><span class="emoji">🧠</span> memoria-projetos</a>
+  <span class="sep">|</span>
+  <span class="clubpro">
+    <a class="inema" href="https://inema.club" target="_blank" rel="noopener">INEMA.CLUB</a>
+    <span class="sep">-</span>
+    <a class="pro" href="https://inema.pro" target="_blank" rel="noopener">PRO</a>
+  </span>
+  <div class="links">
+    <a class="sec" href="#oque">Qué es</a>
+    <a class="sec" href="#fluxo">Cómo funciona</a>
+    <a class="sec" href="#guia">Guía de uso</a>
+    <a class="sec" href="#exemplos">Ejemplos</a>
+    <a class="sec" href="#roadmap">Hoja de ruta</a>
+    <span class="lang"><a href="../">PT</a><a href="../en/">EN</a><a class="on" href="./">ES</a></span>
+    <button class="tgl" id="themeToggle" aria-label="Cambiar tema" title="Cambiar tema">🌙</button>
+    <a class="btn" href="https://github.com/inematds/memoria-projetos" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+
+<header class="hero" id="top">
+  <div class="glow"></div>
+  <div class="wrap">
+    <div>
+      <span class="chip">Kit local · índice + memoria para agentes</span>
+      <h1>Tu agente encuentra cualquier proyecto y <span class="amb">recuerda</span> lo que ya se decidió</h1>
+      <p class="lead">Dos comandos: <code>projeto "o que faz"</code> encuentra el proyecto, en una carpeta o solo en GitHub. <code>memoria "pergunta"</code> responde con fecha y fuente, a partir de tus lecciones y anotaciones. El índice y la búsqueda funcionan en tu máquina; la memoria usa tu suscripción de Claude, sin clave de API.</p>
+      <div class="cta">
+        <a class="btn" href="#guia">Empezar la guía</a>
+        <a class="btn ghost" href="https://github.com/inematds/memoria-projetos" target="_blank" rel="noopener">Ver en GitHub</a>
+      </div>
+    </div>
+    <figure><img src="../assets/banner-es.jpg" alt="Banner: Memoria de proyectos: tu agente encuentra cualquier proyecto y recuerda lo que ya se decidió"></figure>
+  </div>
+</header>
+
+<section id="resumo" class="resumo"><div class="wrap">
+  <span class="chip">En resumen</span>
+  <p>memoria-projetos es un kit para quienes tienen muchos proyectos y trabajan con agentes de IA, como Claude Code y Codex. Resuelve dos problemas: el agente no sabe dónde está cada proyecto y olvida lo que ya se decidió. El comando <code>projeto</code> busca según lo que hace el proyecto, en tus carpetas y en GitHub. El comando <code>memoria</code> responde preguntas como «¿se puede hacer X?» leyendo tus lecciones y anotaciones. Para usarlo, necesitas una computadora con Linux, Python, Ollama y, para la memoria, una suscripción de Claude. Atención: el índice se queda en tu máquina, pero la memoria envía el texto de las anotaciones a Claude para extraer los datos.</p>
+</div></section>
+
+<section id="oque"><div class="wrap">
+  <span class="chip">Qué es</span>
+  <h2>Dos partes independientes</h2>
+  <p class="sub">Puedes instalar solo una. El índice funciona completamente en local; la memoria guarda todo en local, pero usa Claude para extraer los datos. Ambas se actualizan automáticamente todos los días.</p>
+  <figure style="margin:0 0 26px;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px -30px #000"><img src="../assets/banner-grade-es.jpg" alt="Banner con las seis funciones: índice de proyectos, búsqueda semántica, local y GitHub, memoria que responde, carga diaria e informe semanal" loading="lazy" style="width:100%;display:block"></figure>
+  <div class="grid g3">
+    <div class="card"><h3>🔎 Encuentra cualquier proyecto</h3><p><code>projeto "o que faz"</code> busca por palabras y por significado en más de mil proyectos, incluidos los que solo existen en GitHub, y avisa cuando la carpeta local está desactualizada respecto a GitHub.</p></div>
+    <div class="card"><h3>🧠 Memoria que responde</h3><p><code>memoria "pode X?"</code> lee tus lecciones, fallas y la memoria del agente, y devuelve una respuesta breve con fecha y fuente, en lugar de muchas líneas de grep.</p></div>
+    <div class="card"><h3>📊 Medido, no prometido</h3><p>Se registra cada uso. Cada semana se genera un informe: cuántas veces lo usó el agente, cuánto tardó, cuánto costó y si las respuestas fueron útiles.</p></div>
+  </div>
+</div></section>
+
+<section id="fluxo"><div class="wrap">
+  <span class="chip">Cómo funciona</span>
+  <h2>De lo que ya tienes a lo que pregunta el agente</h2>
+  <p class="sub">Índice: las carpetas y los repositorios se convierten en una línea cada uno. Para buscar por significado, cada línea se convierte en un <strong>vector</strong> (una lista de números que representa el significado del texto), calculado por el modelo <strong>bge-m3</strong> en Ollama local. Memoria: <strong>Hindsight</strong>, un servidor de memoria de código abierto para agentes de código (MIT), guarda los datos en una base de datos local y usa <strong>Haiku</strong>, el modelo más pequeño y rápido de Claude, mediante tu suscripción, para extraer datos de las anotaciones y responder. Un modelo local de <strong>reordenamiento</strong> coloca los fragmentos más relevantes al principio.</p>
+  <div class="flow">
+    <span>Carpetas + GitHub</span><span class="arr">→</span>
+    <span>Índice diario 05:40</span><span class="arr">→</span>
+    <span><code>projeto "X"</code></span>
+  </div>
+  <div class="flow" style="margin-top:14px">
+    <span>Lecciones, fallas, memoria</span><span class="arr">→</span>
+    <span>Carga diaria 06:10 (solo lo nuevo)</span><span class="arr">→</span>
+    <span><code>memoria "pregunta"</code></span><span class="arr">→</span>
+    <span>Informe semanal</span>
+  </div>
+</div></section>
+
+<section id="pre"><div class="wrap">
+  <span class="chip">Requisitos previos</span>
+  <h2>Qué debe estar instalado</h2>
+  <p class="sub">El instalador solo comprueba estas cosas; no instala nada del sistema.</p>
+  <div class="grid g3">
+    <div class="card"><h3>Python 3.11+ y Ollama</h3><p>Ollama proporciona los vectores multilingües (los usan ambas partes).</p><pre><span class="c"># modelo de vectores</span>
+<span class="k">ollama pull</span> bge-m3</pre></div>
+    <div class="card"><h3>GitHub CLI (índice)</h3><p>Con la sesión iniciada en cada cuenta que quieras indexar. Sin esta herramienta, el índice solo incluye las carpetas locales.</p><pre><span class="k">gh auth login</span>   <span class="c"># una vez por cuenta</span>
+<span class="k">gh auth status</span></pre></div>
+    <div class="card"><h3>Claude Code con sesión iniciada (memoria)</h3><p>La memoria usa tu suscripción mediante el proveedor <code>claude-code</code> de Hindsight, recomendado para uso personal y local. Los horarios automáticos usan systemd de usuario; <code>enable-linger</code> permite que los temporizadores funcionen aunque hayas cerrado sesión. Sin systemd, usa <code>--sem-systemd</code> y ejecútalo manualmente.</p><pre><span class="k">claude</span> --version
+<span class="k">loginctl enable-linger</span> <span class="s">"$USER"</span></pre></div>
+  </div>
+</div></section>
+
+<section id="guia"><div class="wrap">
+  <span class="chip">Guía de uso · paso a paso</span>
+  <h2>Desde la clonación hasta la primera respuesta</h2>
+  <p class="sub">Comandos del README del repositorio. La primera vez que se inicia el servidor de memoria, descarga la base de datos integrada y el modelo de reordenamiento; después, todo funciona en local.</p>
+
+  <div class="step"><div class="b">1</div><div>
+    <h3>Descargar y ver qué haría el instalador</h3>
+    <p><code>--dry-run</code> muestra todo primero, sin guardar nada.</p>
+<pre><span class="k">git clone</span> <span class="s">https://github.com/inematds/memoria-projetos.git</span>
+<span class="k">cd</span> memoria-projetos
+<span class="k">./instalar.sh --dry-run</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">2</div><div>
+    <h3>Instalar ambas partes</h3>
+    <p>Crea los accesos directos <code>projeto</code> y <code>memoria</code> en <code>~/.local/bin</code>, los servicios con límite de memoria e instala Hindsight (unos 2 GB). Para instalar solo una parte: <code>--so-indice</code> o <code>--so-memoria</code>. Si ya existe un acceso directo o servicio con el mismo nombre que no pertenece al kit, lo omite y avisa; para reemplazarlo, usa <code>--forcar</code>. Comprueba que <code>~/.local/bin</code> esté en tu PATH.</p>
+<pre><span class="k">./instalar.sh --instalar-hindsight</span>
+<span class="k">echo</span> $PATH | <span class="k">grep</span> -q .local/bin || <span class="k">echo</span> <span class="s">'export PATH="$HOME/.local/bin:$PATH"'</span> >> ~/.bashrc
+<span class="k">source</span> ~/.bashrc   <span class="c"># o abre una terminal nueva</span>
+<span class="k">systemctl --user status</span> memoria-hindsight   <span class="c"># el primer inicio descarga la base de datos: espera "active (running)"</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">3</div><div>
+    <h3>Indicar dónde están las cosas</h3>
+    <p>En <code>indice/config.json</code>: la carpeta raíz de los proyectos y las cuentas de GitHub (cambia <code>sua-conta-github</code> por la tuya, o deja <code>[]</code> para usar solo carpetas locales). En <code>memoria/fontes.json</code>: los archivos de lecciones, fallas y memoria. En <code>memoria/.env</code>: el nombre de la base de datos de memoria (una por persona o proyecto).</p>
+<pre><span class="c"># una fuente en memoria/fontes.json (modelo completo en fontes.exemplo.json)</span>
+{<span class="s">"nome"</span>: <span class="s">"licoes"</span>, <span class="s">"tipo"</span>: <span class="s">"linhas"</span>,
+ <span class="s">"caminho"</span>: <span class="s">"~/meu-projeto/LESSONS.md"</span>,
+ <span class="s">"contexto"</span>: <span class="s">"lição aprendida no projeto"</span>, <span class="s">"tag"</span>: <span class="s">"licao"</span>}
+<span class="c"># la memoria de Claude Code está en ~/.claude/projects/&lt;pasta&gt;/memory</span>
+<span class="k">ls</span> ~/.claude/projects/   <span class="c"># &lt;pasta&gt; = ruta del proyecto con / reemplazado por -</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">4</div><div>
+    <h3>Crear el primer índice</h3>
+    <p>Mil proyectos tardan de 1 a 2 minutos. Después, busca algo que sepas dónde está para comprobarlo.</p>
+<pre><span class="k">projeto --atualizar</span>
+<span class="k">projeto</span> <span class="s">"publica vídeo no youtube"</span> -n 5   <span class="c"># * = coincidieron todas las palabras</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">5</div><div>
+    <h3>Primera carga de la memoria</h3>
+    <p>Primero, revisa qué se enviaría. Cada documento genera una llamada a Haiku y consume una pequeña parte de la cuota de tu suscripción: en la prueba piloto, unos 5,6 mil tokens de entrada por documento; 100 documentos tardaron 8 minutos.</p>
+<pre><span class="k">python3 memoria/carga.py --simular</span>   <span class="c"># no envía nada</span>
+<span class="k">python3 memoria/carga.py --max 200</span>  <span class="c"># carga inicial</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">6</div><div>
+    <h3>Hacer una pregunta</h3>
+    <p>Respuesta lista (30 a 75 s) o solo los fragmentos (7 a 17 s, sin LLM para la respuesta). Después, califica la última respuesta (el texto entre comillas explica el motivo): se incluirá en el informe.</p>
+<pre><span class="k">memoria</span> <span class="s">"¿puedo ejecutar un proceso largo sin límite de memoria?"</span>
+<span class="k">memoria -r</span> <span class="s">"systemd PATH"</span>
+<span class="k">memoria --nota util</span> <span class="s">"encontró la regla correcta"</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">7</div><div>
+    <h3>Hacer que el agente lo use</h3>
+    <p>El agente solo usa lo que indican sus reglas. Copia el bloque «Encontrar proyectos y consultar la memoria» del README en <code>CLAUDE.md</code> o <code>AGENTS.md</code>. La memoria no se carga al inicio de la sesión: el agente consulta cuando la necesita y así la cuota solo se consume cuando hay una pregunta.</p>
+<pre><span class="c"># fragmento de la regla</span>
+- Pregunta sobre una regla o decisión: ejecuta `memoria "pregunta"` ANTES de buscar con grep en las lecciones y fallas.</pre>
+  </div></div>
+
+  <div class="step"><div class="b">8</div><div>
+    <h3>Dejarlo funcionando y leer el informe</h3>
+    <p>Los temporizadores actualizan el índice a las 05:40, guardan solo lo nuevo a las 06:10 y generan el informe cada lunes a las 08:00. Con él puedes decidir si lo mantienes, cambias la regla o lo desactivas.</p>
+<pre><span class="k">python3 memoria/semana.py</span>   <span class="c"># → memoria/semana-AAAA-MM-DD.md</span>
+<span class="k">python3 memoria/avalia.py</span>   <span class="c"># grep × fragmentos × respuesta en tus preguntas (consume cuota)</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">9</div><div>
+    <h3>Detener o desinstalar</h3>
+    <p>Para detener todo, desactiva los servicios. Para eliminarlo, borra también los accesos directos, el entorno de Python de Hindsight y la base de datos local (<code>~/.pg0</code>).</p>
+<pre><span class="k">systemctl --user disable --now</span> memoria-hindsight.service memoria-carga.timer memoria-semana.timer memoria-indice.timer
+<span class="k">rm</span> ~/.config/systemd/user/memoria-*.service ~/.config/systemd/user/memoria-*.timer
+<span class="k">systemctl --user daemon-reload</span>
+<span class="k">rm</span> ~/.local/bin/projeto ~/.local/bin/memoria
+<span class="k">rm -rf</span> memoria/.venv   <span class="c"># desde la carpeta del kit</span>
+<span class="k">rm -rf</span> ~/.pg0   <span class="c"># solo si ningún otro programa usa pg0: borra la memoria guardada</span></pre>
+</div></div>
+</div></section>
+
+<section id="exemplos"><div class="wrap">
+  <span class="chip">Ejemplos</span>
+  <h2>Lo que aparece en pantalla</h2>
+  <p class="sub">Resultados reales de una máquina con cerca de mil proyectos; los nombres corresponden a sus proyectos.</p>
+  <div class="grid g2">
+    <div class="card"><h3>🔎 Encontrar según lo que hace el proyecto</h3><p>Sin recordar el nombre, solo qué hace. El <code>*</code> indica que coincidieron todas las palabras:</p><pre><span class="k">projeto</span> <span class="s">"publica vídeo no youtube"</span> -n 2
+1.01* yt-pubx — Publica cualquier video en
+      YouTube con un comando…
+0.96* yt-pub-livesx2 — Publicador de videos
+      en YouTube para N canales…</pre></div>
+    <div class="card"><h3>🧠 Fragmentos en lugar de grep</h3><p>Con <code>-r</code>, solo aparecen los fragmentos relevantes, cada uno con su origen:</p><pre><span class="k">memoria -r</span> <span class="s">"systemd PATH codex"</span>   <span class="c"># 12,7 s</span>
+- systemd-run sin PATH ejecutó el antiguo
+  /usr/bin/codex… definir PATH con ~/.npm-global/bin</pre></div>
+  </div>
+  <div class="card" style="margin-top:18px"><h3>📏 Prueba piloto: 10 preguntas con respuestas conocidas</h3><p><strong>grep</strong> (como funciona hoy): 10 de 10, pero el agente tuvo que leer 43,6 mil tokens de líneas mezcladas. <strong>Fragmentos</strong> (<code>-r</code>): 9 de 10, con 5,3 mil tokens. <strong>Respuesta lista</strong>: 10 de 10, con 4,3 mil tokens, cerca de 10 veces menos texto. Este resultado corresponde a una prueba piloto pequeña, evaluada por quien la preparó, y el uso real se está midiendo con el informe semanal.</p></div>
+</div></section>
+
+<section id="roadmap"><div class="wrap">
+  <span class="chip">Hoja de ruta</span>
+  <h2>Estado actual y próximos pasos</h2>
+  <p class="sub">El índice se usa a diario. La memoria está en prueba: el informe semanal define los próximos pasos.</p>
+  <div class="phase"><div class="tag">Listo</div><div class="d"><strong>Índice de proyectos</strong><span>Carpetas locales y varias cuentas de GitHub, búsqueda por palabras y por significado, aviso de carpetas desactualizadas respecto a GitHub y actualización diaria.</span></div></div>
+  <div class="phase"><div class="tag">En prueba</div><div class="d"><strong>Memoria que responde</strong><span>Carga diaria solo de lo nuevo, comando <code>memoria</code> con calificación de utilidad e informe semanal de uso y costo.</span></div></div>
+  <div class="phase"><div class="tag">Después</div><div class="d"><strong>Más fuentes y más agentes</strong><span>Más tipos de anotaciones como fuentes; una herramienta que el agente pueda invocar directamente, sin pasar por la terminal (MCP), si el comando resulta útil; y una base de datos de memoria por cliente.</span></div></div>
+</div></section>
+
+<footer>
+  <div class="wrap">
+    <div class="pill">Python</div><div class="pill">Ollama · bge-m3</div><div class="pill">Hindsight (MIT)</div><div class="pill">Claude Code</div>
+    <p style="margin-top:18px">memoria-projetos · memoria de Hindsight por <a href="https://github.com/vectorize-io/hindsight" target="_blank" rel="noopener">vectorize-io</a> (MIT), <a href="https://inematds.github.io/hindsight/guia/" target="_blank" rel="noopener">guía en portugués</a> ·
+      <a href="https://github.com/inematds/memoria-projetos">inematds/memoria-projetos</a> ·
+      <a href="https://inema.club">INEMA.CLUB</a></p>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var KEY='memoria-projetos-theme';
+    var b=document.body, t=document.getElementById('themeToggle');
+    if(localStorage.getItem(KEY)==='light'){ b.classList.add('light'); t.textContent='☀️'; }
+    t.addEventListener('click',function(){
+      var light=b.classList.toggle('light');
+      t.textContent=light?'☀️':'🌙';
+      localStorage.setItem(KEY, light?'light':'dark');
+    });
+  })();
+</script>
+</body>
+</html>
